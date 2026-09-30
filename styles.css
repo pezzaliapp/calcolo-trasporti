@@ -1,0 +1,370 @@
+/* ---------- Font (ospitati nell'app: funzionano anche offline) ---------- */
+@font-face{font-family:"Barlow";src:url(fonts/barlow-latin-400-normal.woff2) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"Barlow";src:url(fonts/barlow-latin-500-normal.woff2) format("woff2");font-weight:500;font-display:swap}
+@font-face{font-family:"Barlow";src:url(fonts/barlow-latin-600-normal.woff2) format("woff2");font-weight:600;font-display:swap}
+@font-face{font-family:"Barlow";src:url(fonts/barlow-latin-700-normal.woff2) format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:"Barlow Condensed";src:url(fonts/barlow-condensed-latin-600-normal.woff2) format("woff2");font-weight:600;font-display:swap}
+@font-face{font-family:"Barlow Condensed";src:url(fonts/barlow-condensed-latin-700-normal.woff2) format("woff2");font-weight:700;font-display:swap}
+
+/* ---------- Colori ---------- */
+:root{
+  --paper:#F2F4F6;
+  --surface:#FFFFFF;
+  --ink:#17202B;
+  --steel:#5A6878;
+  --rule:#D6DDE4;
+  --field:#F7F9FA;
+  --red:#C4161C;
+  --red-ink:#A31217;
+  --red-soft:#FCEBEC;
+  --amber:#8A5A00;
+  --amber-soft:#FFF4DC;
+  --focus:#1D5FD1;
+  --radius-s:6px;
+  --radius-m:10px;
+  --shadow:0 1px 0 rgba(23,32,43,.04), 0 12px 32px -18px rgba(23,32,43,.35);
+  --font:"Barlow", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-cond:"Barlow Condensed", "Arial Narrow", "Roboto Condensed", var(--font);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:#131920;
+    --surface:#1A222C;
+    --ink:#E7ECF1;
+    --steel:#9AA8B6;
+    --rule:#2C3743;
+    --field:#141B23;
+    --red:#E3353B;
+    --red-ink:#FF6166;
+    --red-soft:#3A1C1F;
+    --amber:#F0B44C;
+    --amber-soft:#2E2413;
+    --focus:#6EA2FF;
+    --shadow:0 18px 40px -24px rgba(0,0,0,.8);
+    color-scheme:dark;
+  }
+}
+
+/* ---------- Base ---------- */
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;height:100%}
+body{
+  margin:0;min-height:100%;
+  background:var(--paper);color:var(--ink);
+  font-family:var(--font);font-size:16px;line-height:1.5;
+  font-variant-numeric:tabular-nums;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+h1,h2,h3{margin:0;font-weight:700;line-height:1.15}
+p{margin:0}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+[hidden]{display:none !important}
+
+/* ---------- Barra in alto ---------- */
+.topbar{
+  position:sticky;top:0;z-index:20;
+  background:var(--surface);
+  border-bottom:1px solid var(--rule);
+  padding-top:env(safe-area-inset-top,0px);
+}
+.topbar-inner{max-width:1180px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:baseline;gap:12px;min-width:0}
+.wordmark{font-family:var(--font-cond);font-weight:700;font-size:26px;letter-spacing:.06em;color:var(--red);line-height:1}
+.brand-sub{font-weight:500;color:var(--steel);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ghost-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  background:none;border:1px solid var(--rule);border-radius:999px;
+  padding:7px 14px;cursor:pointer;font-weight:500;color:var(--ink);
+}
+.ghost-btn svg{width:18px;height:18px}
+.ghost-btn:hover{border-color:var(--steel)}
+
+/* ---------- Layout ---------- */
+.layout{
+  max-width:1180px;margin:0 auto;padding:28px 20px 120px;
+  display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:36px;align-items:start;
+}
+.intro{margin-bottom:22px}
+.intro h1{font-family:var(--font-cond);font-size:44px;letter-spacing:-.01em}
+.intro p{color:var(--steel);margin-top:4px;max-width:56ch}
+
+.step{
+  background:var(--surface);border:1px solid var(--rule);border-radius:var(--radius-m);
+  padding:20px;margin-bottom:16px;
+}
+.step-head{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.step-num{
+  font-family:var(--font-cond);font-weight:700;font-size:22px;line-height:1;
+  width:34px;height:34px;display:grid;place-items:center;
+  border-radius:50%;background:var(--red);color:#fff;flex:none;
+}
+.step-head h2{font-size:21px}
+
+.field-label{display:block;font-size:14px;font-weight:600;color:var(--steel);margin:0 0 6px}
+.input,.select{
+  width:100%;min-height:48px;
+  background:var(--field);border:1px solid var(--rule);border-radius:var(--radius-s);
+  padding:10px 12px;font-size:16px;
+}
+.select{
+  appearance:none;-webkit-appearance:none;padding-right:40px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5 7l5 6 5-6' fill='none' stroke='%235A6878' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;background-size:18px;
+}
+.select:disabled{opacity:.55}
+.input:focus,.select:focus{border-color:var(--focus)}
+.hint{font-size:14px;color:var(--steel)}
+
+/* ---------- Scelta prodotto ---------- */
+.picker{display:grid;grid-template-columns:minmax(0,1fr);gap:4px}
+.picker .field-label:not(:first-child){margin-top:10px}
+.combo{position:relative}
+.combo-list{
+  position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:15;
+  margin:0;padding:6px;list-style:none;
+  background:var(--surface);border:1px solid var(--rule);border-radius:var(--radius-m);
+  box-shadow:var(--shadow);max-height:min(360px,55vh);overflow:auto;
+}
+.combo-group{font-size:13px;font-weight:700;color:var(--steel);padding:10px 10px 4px}
+.combo-opt{
+  display:flex;justify-content:space-between;gap:12px;align-items:baseline;
+  padding:10px;border-radius:var(--radius-s);cursor:pointer;
+}
+.combo-opt[aria-selected="true"],.combo-opt:hover{background:var(--red-soft)}
+.combo-opt .opt-name{font-weight:600}
+.combo-opt .opt-meta{font-size:13px;color:var(--steel);white-space:nowrap}
+.combo-empty{padding:12px 10px;color:var(--steel)}
+.link-btn{
+  justify-self:start;background:none;border:0;padding:8px 0;margin-top:4px;
+  color:var(--red-ink);font-weight:600;cursor:pointer;
+}
+.link-btn:hover{text-decoration:underline}
+
+.manual{margin-top:12px;padding:16px;border:1px dashed var(--rule);border-radius:var(--radius-m);background:var(--field)}
+.seg{display:inline-flex;border:1px solid var(--rule);border-radius:999px;padding:3px;background:var(--surface);margin-bottom:14px}
+.seg button{border:0;background:none;padding:7px 16px;border-radius:999px;cursor:pointer;font-weight:600;color:var(--steel)}
+.seg button[aria-checked="true"]{background:var(--ink);color:var(--surface)}
+.manual-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.manual-grid label{display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:600;color:var(--steel)}
+#manualPallet{grid-template-columns:minmax(0,1fr)}
+.manual-actions{display:flex;gap:16px;align-items:center;margin-top:14px}
+
+/* ---------- Carico ---------- */
+.cart{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:10px}
+.cart-item{
+  display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;align-items:center;
+  padding:12px 12px 12px 14px;border:1px solid var(--rule);border-radius:var(--radius-m);
+  border-left:4px solid var(--steel);
+}
+.cart-item[data-svc="pallet"]{border-left-color:var(--ink)}
+.cart-item[data-svc="groupage"]{border-left-color:var(--red)}
+.cart-item[data-svc="quote"]{border-left-color:var(--amber)}
+.ci-name{font-weight:700;overflow-wrap:anywhere}
+.ci-meta{font-size:14px;color:var(--steel);margin-top:2px;overflow-wrap:anywhere}
+.chip{
+  display:inline-block;font-size:12.5px;font-weight:700;line-height:1;
+  padding:5px 8px;border-radius:999px;margin-right:6px;vertical-align:1px;
+  background:var(--field);border:1px solid var(--rule);color:var(--ink);
+}
+.chip-red{background:var(--red-soft);border-color:transparent;color:var(--red-ink)}
+.chip-amber{background:var(--amber-soft);border-color:transparent;color:var(--amber)}
+.qty{display:flex;align-items:center;border:1px solid var(--rule);border-radius:999px;overflow:hidden}
+.qty button{width:36px;height:36px;border:0;background:none;font-size:20px;cursor:pointer;color:var(--ink)}
+.qty button:hover{background:var(--field)}
+.qty span{min-width:28px;text-align:center;font-weight:700}
+.ci-del{width:36px;height:36px;border:0;background:none;border-radius:50%;cursor:pointer;color:var(--steel);font-size:18px}
+.ci-del:hover{background:var(--red-soft);color:var(--red-ink)}
+.empty{margin-top:14px;color:var(--steel);font-size:15px}
+
+/* ---------- Destinazione ---------- */
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+
+/* ---------- Interruttori ---------- */
+.toggles{display:grid;gap:4px}
+.toggle{display:flex;align-items:flex-start;gap:14px;padding:10px 0;cursor:pointer}
+.toggle input{position:absolute;opacity:0;width:1px;height:1px}
+.toggle-ui{
+  flex:none;width:44px;height:26px;border-radius:999px;background:var(--rule);position:relative;margin-top:1px;
+  transition:background .15s;
+}
+.toggle-ui::after{
+  content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;
+  background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .15s;
+}
+.toggle input:checked + .toggle-ui{background:var(--red)}
+.toggle input:checked + .toggle-ui::after{transform:translateX(18px)}
+.toggle input:focus-visible + .toggle-ui{outline:3px solid var(--focus);outline-offset:2px}
+.toggle-text{display:flex;flex-direction:column}
+.toggle-text small{color:var(--steel);font-size:14px}
+
+/* ---------- Adeguamenti ---------- */
+.adjust{margin-top:12px;border-top:1px solid var(--rule);padding-top:6px}
+.adjust summary{
+  list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:10px 0;font-weight:700;
+}
+.adjust summary::-webkit-details-marker{display:none}
+.adjust summary::after{content:"";width:10px;height:10px;border-right:2px solid var(--steel);border-bottom:2px solid var(--steel);transform:rotate(45deg);margin:0 4px 4px auto;transition:transform .15s}
+.adjust[open] summary::after{transform:rotate(-135deg);margin-bottom:-4px}
+.adjust-chips{display:flex;gap:6px;flex-wrap:wrap}
+.adjust-body{display:grid;gap:10px;padding-bottom:6px}
+.adj-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.adj-row .field-label{margin:0;flex-basis:100%}
+.stepper{display:flex;align-items:center;border:1px solid var(--rule);border-radius:var(--radius-s);overflow:hidden;background:var(--field)}
+.stepper button{width:48px;height:46px;border:0;background:none;font-size:22px;cursor:pointer}
+.stepper button:hover{background:var(--surface)}
+.stepper input{width:90px;height:46px;border:0;border-left:1px solid var(--rule);border-right:1px solid var(--rule);background:var(--surface);text-align:center;font-weight:700;font-size:18px}
+.fuel-share{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.fuel-share label{display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:600;color:var(--steel)}
+
+/* ---------- Bolla ---------- */
+.docket-wrap{position:sticky;top:78px}
+.docket{
+  background:var(--surface);border-radius:var(--radius-m);box-shadow:var(--shadow);
+  border:1px solid var(--rule);border-top:6px solid var(--red);
+  padding:20px 22px 18px;position:relative;
+}
+.docket-head{display:flex;justify-content:space-between;gap:10px;font-weight:700}
+.docket-head time{font-weight:500;color:var(--steel)}
+.docket-dest{font-family:var(--font-cond);font-weight:600;font-size:22px;margin-top:6px;line-height:1.2}
+.docket-body{margin-top:14px;border-top:1px solid var(--rule)}
+.dk-line{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:10px 0;border-bottom:1px solid var(--rule)}
+.dk-line .l{min-width:0}
+.dk-line strong{display:block;overflow-wrap:anywhere}
+.dk-line small{display:block;color:var(--steel);font-size:13.5px;overflow-wrap:anywhere}
+.dk-line .v{font-weight:700;white-space:nowrap}
+.dk-line.minor .v{font-weight:600;color:var(--steel)}
+.dk-empty{padding:14px 0;color:var(--steel)}
+
+.docket-total{
+  position:relative;margin:16px -22px 0;padding:18px 22px 6px;
+  display:grid;grid-template-columns:1fr auto;align-items:end;row-gap:0;
+  border-top:2px dashed var(--rule);
+}
+/* tacche laterali stile biglietto */
+.docket-total::before,.docket-total::after{
+  content:"";position:absolute;top:-11px;width:20px;height:20px;border-radius:50%;
+  background:var(--paper);border:1px solid var(--rule);
+}
+.docket-total::before{left:-11px}
+.docket-total::after{right:-11px}
+.total-label{font-weight:700;font-size:18px;align-self:center}
+.total{font-family:var(--font-cond);font-weight:700;font-size:58px;line-height:1;letter-spacing:-.01em;text-align:right}
+.total-note{grid-column:2;text-align:right;color:var(--steel);font-size:13.5px}
+.docket-alt{margin-top:12px;padding:10px 12px;border-radius:var(--radius-s);background:var(--field);font-size:14.5px}
+.alt-row{display:flex;justify-content:space-between;gap:12px;margin-top:4px}
+.docket-notes{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:8px}
+.docket-notes li{font-size:14.5px;padding:9px 12px;border-radius:var(--radius-s);background:var(--amber-soft);color:var(--amber)}
+.docket-notes li.info{background:var(--field);color:var(--steel)}
+.docket-ref{margin-top:14px;font-size:13.5px;color:var(--steel);display:grid;gap:2px}
+.docket-ref b{color:var(--ink);font-weight:600}
+.docket-actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+
+.btn{
+  min-height:44px;padding:10px 18px;border-radius:var(--radius-s);border:1px solid var(--red);
+  background:var(--red);color:#fff;font-weight:700;cursor:pointer;
+}
+.btn:hover{background:var(--red-ink);border-color:var(--red-ink)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-ghost{background:none;color:var(--ink);border-color:var(--rule)}
+.btn-ghost:hover{background:var(--field);border-color:var(--steel)}
+.docket-actions .btn{flex:1 1 auto}
+
+/* ---------- Barra prezzo telefono ---------- */
+.pricebar{
+  position:fixed;left:0;right:0;bottom:0;z-index:25;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:var(--surface);border-top:1px solid var(--rule);box-shadow:0 -10px 30px -20px rgba(0,0,0,.4);
+  padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));
+}
+.pricebar small{display:block;color:var(--steel);font-size:13px}
+.pricebar strong{font-family:var(--font-cond);font-size:30px;line-height:1}
+
+/* ---------- Finestra listini ---------- */
+.sheet{
+  width:min(720px,calc(100% - 24px));max-height:calc(100% - 48px);
+  border:0;border-radius:var(--radius-m);padding:0;background:var(--surface);color:var(--ink);
+  box-shadow:0 30px 80px -30px rgba(0,0,0,.6);
+}
+.sheet::backdrop{background:rgba(15,20,26,.55)}
+.sheet-head{position:sticky;top:0;background:var(--surface);display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid var(--rule)}
+.sheet-head h2{font-family:var(--font-cond);font-size:28px}
+.sheet-body{padding:6px 22px 24px}
+.sup{padding:18px 0;border-bottom:1px solid var(--rule)}
+.sup:last-child{border-bottom:0}
+.sup h3{font-size:19px}
+.sup-when{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.stamp{
+  display:inline-flex;flex-direction:column;padding:6px 12px;border:2px solid var(--red);border-radius:var(--radius-s);
+  color:var(--red-ink);transform:rotate(-1.5deg);
+}
+.stamp small{font-size:11.5px;font-weight:600;color:var(--steel)}
+.stamp b{font-family:var(--font-cond);font-size:22px;line-height:1.1}
+.sup ul{margin:8px 0 0;padding-left:20px;color:var(--steel)}
+.sup li{margin:3px 0}
+.timeline{list-style:none;padding:0;margin:10px 0 0;border-left:2px solid var(--rule)}
+.timeline li{position:relative;padding:4px 0 8px 16px;color:var(--ink)}
+.timeline li::before{content:"";position:absolute;left:-6px;top:11px;width:10px;height:10px;border-radius:50%;background:var(--surface);border:2px solid var(--red)}
+.timeline time{display:block;font-size:13px;color:var(--steel);font-weight:600}
+.table-wrap{overflow-x:auto;margin-top:10px}
+.ptable{border-collapse:collapse;width:100%;font-size:14.5px}
+.ptable th,.ptable td{padding:7px 10px;border-bottom:1px solid var(--rule);text-align:left;white-space:nowrap}
+.ptable th{color:var(--steel);font-weight:600}
+
+/* ---------- Avviso nuova versione ---------- */
+.updbar{
+  position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:40;
+  max-width:560px;margin:0 auto;display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  background:var(--ink);color:var(--surface);padding:12px 14px;border-radius:var(--radius-m);font-weight:600;
+  box-shadow:0 16px 40px -16px rgba(0,0,0,.6);
+}
+.updbar.show{display:flex}
+.updbar-actions{display:flex;gap:8px}
+.btn-light{background:var(--surface);color:var(--ink);border-color:var(--surface)}
+.btn-light:hover{background:var(--paper);border-color:var(--paper)}
+.btn-ghost-light{background:none;color:var(--surface);border-color:rgba(255,255,255,.4)}
+@media (prefers-color-scheme: dark){ .btn-ghost-light{border-color:rgba(0,0,0,.3)} }
+
+.toast{
+  position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);
+  background:var(--ink);color:var(--surface);padding:10px 16px;border-radius:999px;font-weight:600;
+  opacity:0;pointer-events:none;transition:opacity .2s, transform .2s;z-index:50;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ---------- Animazione prezzo ---------- */
+.total.bump{animation:bump .35s ease-out}
+@keyframes bump{0%{transform:translateY(4px);opacity:.4}100%{transform:none;opacity:1}}
+@media (prefers-reduced-motion: reduce){ .total.bump{animation:none} .toggle-ui,.toggle-ui::after{transition:none} }
+
+/* ---------- Telefono e tablet ---------- */
+@media (max-width: 960px){
+  .layout{grid-template-columns:minmax(0,1fr);gap:20px;padding:20px 14px 110px}
+  .docket-wrap{position:static}
+  .intro h1{font-size:36px}
+}
+@media (max-width: 560px){
+  .topbar-inner{padding:10px 14px}
+  .ghost-btn span{display:none}
+  .ghost-btn{padding:8px}
+  .brand-sub{font-size:14px}
+  .step{padding:16px}
+  .two,.fuel-share{grid-template-columns:minmax(0,1fr)}
+  .manual-grid{grid-template-columns:minmax(0,1fr)}
+  .cart-item{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"info del" "qty qty"}
+  .cart-item .ci-info{grid-area:info}
+  .cart-item .ci-del{grid-area:del}
+  .cart-item .qty{grid-area:qty;justify-self:start}
+  .total{font-size:50px}
+}
+
+/* ---------- Stampa ---------- */
+@media print{
+  body{background:#fff}
+  .topbar,.config,.pricebar,.docket-actions,.updbar,.toast{display:none !important}
+  .layout{display:block;padding:0}
+  .docket{box-shadow:none;border:1px solid #999}
+  .docket-total::before,.docket-total::after{display:none}
+}

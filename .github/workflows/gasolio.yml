@@ -1,0 +1,31 @@
+name: Aggiorna prezzo gasolio (MIMIT)
+
+on:
+  schedule:
+    - cron: "0 8 * * *"    # ogni giorno alle 8:00 UTC = 10:00 ora legale / 9:00 ora solare (il MIMIT pubblica dalle 8:30)
+  workflow_dispatch: {}      # permette di lanciarlo a mano dalla scheda Actions
+
+permissions:
+  contents: write
+
+jobs:
+  aggiorna:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Leggi prezzo MIMIT
+        run: python scripts/aggiorna_gasolio.py
+      - name: Salva se cambiato
+        run: |
+          if git diff --quiet data/gasolio.json; then
+            echo "Nessuna modifica."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898733+github-actions[bot]@users.noreply.github.com"
+            git add data/gasolio.json
+            git commit -m "Prezzo gasolio MIMIT aggiornato"
+            git push
+          fi

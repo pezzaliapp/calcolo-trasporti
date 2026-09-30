@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Calcolo costi di trasporto</title>
+  <meta name="description" content="Calcola in pochi secondi il costo di trasporto delle attrezzature in tutta Italia.">
+  <meta name="theme-color" content="#C4161C">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Trasporti">
+  <link rel="preload" href="fonts/barlow-condensed-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <span class="wordmark">TRASPORTI</span>
+        <span class="brand-sub">Calcolo costi di spedizione</span>
+      </div>
+      <button class="ghost-btn" id="btnListini" type="button" aria-haspopup="dialog">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z M14 3v5h5 M9 12h7 M9 16h7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+        <span>Listini e aggiornamenti</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="config" aria-label="Configura la spedizione">
+
+      <div class="intro">
+        <h1>Quanto costa spedire?</h1>
+        <p>Scegli i prodotti e la destinazione: il costo si aggiorna mentre compili.</p>
+      </div>
+
+      <!-- 1. Prodotti -->
+      <section class="step" aria-labelledby="h-prodotti">
+        <div class="step-head">
+          <span class="step-num" aria-hidden="true">1</span>
+          <h2 id="h-prodotti">Cosa spedisci</h2>
+        </div>
+
+        <div class="picker">
+          <label class="field-label" for="catSelect">Famiglia</label>
+          <select id="catSelect" class="select"></select>
+
+          <label class="field-label" for="artInput">Prodotto</label>
+          <div class="combo" id="combo">
+            <input id="artInput" class="input" type="text" autocomplete="off" spellcheck="false"
+                   placeholder="Cerca, es. F 535 o MEC 10"
+                   role="combobox" aria-expanded="false" aria-controls="artList" aria-autocomplete="list">
+            <ul id="artList" class="combo-list" role="listbox" hidden></ul>
+          </div>
+          <button class="link-btn" id="btnManual" type="button">+ Collo non a catalogo</button>
+        </div>
+
+        <div id="manualBox" class="manual" hidden>
+          <div class="seg" role="radiogroup" aria-label="Tipo di collo">
+            <button type="button" role="radio" aria-checked="true" data-mtype="pallet">Pallet</button>
+            <button type="button" role="radio" aria-checked="false" data-mtype="groupage">Groupage</button>
+          </div>
+          <div class="manual-grid" id="manualPallet">
+            <label>Tipo di pallet
+              <select id="mPalletType" class="select"></select>
+            </label>
+            <p class="hint" id="mPalletHint"></p>
+          </div>
+          <div class="manual-grid" id="manualGroupage" hidden>
+            <label>Metri lineari<input id="mMl" class="input" type="number" min="0" step="0.5" inputmode="decimal" value="3"></label>
+            <label>Peso (quintali)<input id="mQ" class="input" type="number" min="0" step="0.5" inputmode="decimal" value="5"></label>
+            <label>Bancali 80×120<input id="mB" class="input" type="number" min="0" step="1" inputmode="numeric" value="1"></label>
+          </div>
+          <div class="manual-actions">
+            <button type="button" class="btn" id="btnManualAdd">Aggiungi al carico</button>
+            <button type="button" class="link-btn" id="btnManualCancel">Annulla</button>
+          </div>
+        </div>
+
+        <ul class="cart" id="cart" aria-live="polite"></ul>
+        <p class="empty" id="cartEmpty">Nessun prodotto nel carico. Scegli una famiglia o cerca un prodotto.</p>
+      </section>
+
+      <!-- 2. Destinazione -->
+      <section class="step" aria-labelledby="h-dest">
+        <div class="step-head">
+          <span class="step-num" aria-hidden="true">2</span>
+          <h2 id="h-dest">Dove va</h2>
+        </div>
+        <div class="two">
+          <label class="field">
+            <span class="field-label">Regione</span>
+            <select id="regSelect" class="select"></select>
+          </label>
+          <label class="field">
+            <span class="field-label">Provincia</span>
+            <select id="provSelect" class="select" disabled></select>
+          </label>
+        </div>
+      </section>
+
+      <!-- 3. Servizi -->
+      <section class="step" aria-labelledby="h-servizi">
+        <div class="step-head">
+          <span class="step-num" aria-hidden="true">3</span>
+          <h2 id="h-servizi">Servizi</h2>
+        </div>
+        <div class="toggles">
+          <label class="toggle">
+            <input type="checkbox" id="optAss">
+            <span class="toggle-ui" aria-hidden="true"></span>
+            <span class="toggle-text"><strong>Assicurazione all risk</strong><small>3% sul costo del trasporto</small></span>
+          </label>
+          <label class="toggle">
+            <input type="checkbox" id="optPre">
+            <span class="toggle-ui" aria-hidden="true"></span>
+            <span class="toggle-text"><strong>Preavviso telefonico</strong><small>Solo spedizioni su pallet</small></span>
+          </label>
+          <label class="toggle">
+            <input type="checkbox" id="optDis">
+            <span class="toggle-ui" aria-hidden="true"></span>
+            <span class="toggle-text"><strong>Località disagiata o oltre 30 km dal capoluogo</strong><small>Il costo va confermato</small></span>
+          </label>
+        </div>
+
+        <details class="adjust" id="adjustBox">
+          <summary>
+            <span>Adeguamenti costi</span>
+            <span class="adjust-chips" id="adjChips"></span>
+          </summary>
+          <div class="adjust-body">
+            <div class="adj-row">
+              <span class="field-label" id="lblAdj">Aumenta o diminuisci (%)</span>
+              <div class="stepper" role="group" aria-labelledby="lblAdj">
+                <button type="button" id="adjDown" aria-label="Diminuisci dell'1%">−</button>
+                <input id="adjPct" type="number" step="0.5" inputmode="decimal" value="0" aria-labelledby="lblAdj">
+                <button type="button" id="adjUp" aria-label="Aumenta dell'1%">+</button>
+              </div>
+              <button type="button" class="link-btn" id="adjReset">Azzera</button>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="fuelOn">
+              <span class="toggle-ui" aria-hidden="true"></span>
+              <span class="toggle-text"><strong>Adegua al prezzo del gasolio di oggi</strong><small id="fuelInfo">Caricamento dati MIMIT…</small></span>
+            </label>
+            <div class="fuel-share">
+              <label>Incidenza gasolio, Italia continentale (%)<input id="fuelShare" class="input" type="number" min="0" max="100" step="1" inputmode="decimal"></label>
+              <label>Incidenza gasolio, Sicilia e Sardegna (%)<input id="fuelShareIs" class="input" type="number" min="0" max="100" step="1" inputmode="decimal"></label>
+            </div>
+            <p class="hint">Gli adeguamenti restano salvati solo su questo dispositivo.</p>
+          </div>
+        </details>
+      </section>
+    </section>
+
+    <!-- Bolla / risultato -->
+    <aside class="docket-wrap" aria-label="Costo stimato">
+      <article class="docket" id="docket">
+        <header class="docket-head">
+          <span>Stima costo di trasporto</span>
+          <time id="dkDate"></time>
+        </header>
+        <p class="docket-dest" id="dkDest">Destinazione da scegliere</p>
+        <div class="docket-body" id="dkLines"></div>
+        <div class="docket-total">
+          <span class="total-label">Totale</span>
+          <output class="total" id="dkTotal" aria-live="polite">—</output>
+          <span class="total-note">IVA esclusa</span>
+        </div>
+        <div class="docket-alt" id="dkAlt" hidden></div>
+        <ul class="docket-notes" id="dkNotes"></ul>
+        <footer class="docket-ref" id="dkRef"></footer>
+        <div class="docket-actions">
+          <button type="button" class="btn" id="btnShare" disabled>Condividi</button>
+          <button type="button" class="btn btn-ghost" id="btnCopy" disabled>Copia</button>
+          <button type="button" class="btn btn-ghost" id="btnPrint" disabled>Stampa</button>
+        </div>
+      </article>
+    </aside>
+  </main>
+
+  <!-- Barra prezzo su telefono -->
+  <div class="pricebar" id="pricebar" hidden>
+    <div><small>Totale stimato</small><strong id="pbTotal">—</strong></div>
+    <button type="button" class="btn" id="pbGo">Vedi dettaglio</button>
+  </div>
+
+  <!-- Listini -->
+  <dialog id="dlgListini" class="sheet" aria-labelledby="dlgTitle">
+    <div class="sheet-head">
+      <h2 id="dlgTitle">Listini e aggiornamenti</h2>
+      <button type="button" class="ghost-btn" id="dlgClose" aria-label="Chiudi">✕</button>
+    </div>
+    <div class="sheet-body" id="dlgBody"></div>
+  </dialog>
+
+  <!-- Nuova versione -->
+  <div id="updBar" class="updbar" role="status" aria-live="polite">
+    <span>È disponibile una nuova versione.</span>
+    <span class="updbar-actions">
+      <button id="updLater" type="button" class="btn btn-ghost-light">Dopo</button>
+      <button id="updNow" type="button" class="btn btn-light">Aggiorna</button>
+    </span>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

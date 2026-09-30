@@ -1,0 +1,8 @@
+# I listini originali dei fornitori restano sul tuo computer
+listini/
+*.xlsx
+*.pdf
+*.msg
+.DS_Store
+# strumenti di conversione dei listini: solo sul computer
+tools/
