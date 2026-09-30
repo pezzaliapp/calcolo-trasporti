@@ -3,7 +3,7 @@
 "use strict";
 
 /* ====================== Impostazioni ====================== */
-const APP_BUILD = 10;                // deve coincidere con versione.json
+const APP_BUILD = 11;                // deve coincidere con versione.json
 const DATI_VERSIONE = 2;            // deve coincidere con "versione" in data/pallet.json e data/groupage.json
 const ISOLE = ["SICILIA", "SARDEGNA"];
 const STORE = { state: "ct_state", adj: "ct_adj", fuel: "ct_fuel" };
@@ -331,7 +331,7 @@ function computeMode(mode = "auto"){
   if(noSp.length) R.infos.push(`Scarico senza sponda idraulica per ${noSp.join(", ")}: a destino serve un mezzo di sollevamento.`);
   const cor = arts.filter((a) => a.corriere).map((a) => a.nome);
   if(cor.length) R.infos.push(`${cor.join(", ")}: articolo piccolo, di solito conviene il corriere espresso.`);
-  if(opts.dis && priced) R.notes.push("Località disagiata o oltre 30 km dal capoluogo: possibile maggiorazione, il costo va confermato.");
+  if(opts.dis && priced && !(num(opts.disEur) > 0)) R.notes.push("Località disagiata o oltre 30 km dal capoluogo: possibile supplemento, il costo va confermato.");
 
   if(!priced) return R;
 
@@ -350,7 +350,18 @@ function computeMode(mode = "auto"){
     total = round2(total + v);
     R.used.add("gasolio");
   }
-  R.total = total;
+  /* --- Supplemento fisso per località disagiata / oltre 30 km (importo inserito a mano) --- */
+  if(opts.dis && num(opts.disEur) > 0){
+    const v = round2(num(opts.disEur));
+    R.lines.push({ t: "Supplemento località disagiata / oltre 30 km", s: "Importo indicato", v, minor: true });
+    total = round2(total + v);
+  }
+  /* --- Arrotondamento all'euro, come nelle offerte --- */
+  const rounded = Math.round(total);
+  if(Math.abs(rounded - total) >= 0.005){
+    R.lines.push({ t: "Arrotondamento", s: "", v: round2(rounded - total), minor: true });
+  }
+  R.total = rounded;
   R.ready = true;
 
   return R;
@@ -369,7 +380,8 @@ function compute(){
   valid.filter((x) => x !== main).forEach((x) => {
     const same = Math.abs(x.R.total - R.total) < 0.5 || R.alt.some((y) => Math.abs(y.total - x.R.total) < 0.5);
     const meaningful = (x.m === "groupage" && x.R.used.has("groupage")) || (x.m === "pallet" && x.R.used.has("pallet")) || x.m === "auto";
-    if(!same && meaningful) R.alt.push({ mode: x.m, label: LABEL[x.m], total: x.R.total, cheaper: false });
+    const sensible = x.R.total <= R.total * 2;
+    if(!same && meaningful && sensible) R.alt.push({ mode: x.m, label: LABEL[x.m], total: x.R.total, cheaper: false });
   });
   return R;
 }
@@ -658,8 +670,13 @@ function setupDest(){
   $("provSelect").addEventListener("change", (e) => { S.prov = e.target.value; saveState(); renderCart(); render(); });
   [["optAss", "ass"], ["optPre", "pre"], ["optDis", "dis"]].forEach(([id, k]) => {
     $(id).checked = !!S.opts[k];
-    $(id).addEventListener("change", (e) => { S.opts[k] = e.target.checked; saveState(); render(); });
+    $(id).addEventListener("change", (e) => { S.opts[k] = e.target.checked; saveState(); syncDis(); render(); });
   });
+  const inp = $("disEur");
+  inp.value = num(S.opts.disEur) > 0 ? String(S.opts.disEur) : "";
+  inp.addEventListener("input", () => { S.opts.disEur = Math.max(0, num(inp.value)); saveState(); render(); });
+  function syncDis(){ $("disRow").hidden = !S.opts.dis; }
+  syncDis();
 }
 
 /* ====================== Adeguamenti ====================== */
@@ -800,7 +817,7 @@ function loadState(){
   if(!s) return;
   S.reg = regById(s.reg) ? s.reg : "";
   S.prov = s.prov || "";
-  S.opts = { ass: !!s.opts?.ass, pre: !!s.opts?.pre, dis: !!s.opts?.dis };
+  S.opts = { ass: !!s.opts?.ass, pre: !!s.opts?.pre, dis: !!s.opts?.dis, disEur: num(s.opts?.disEur) };
   S.cart = (s.cart || []).filter((l) => l.kind === "manual" || artById(l.artId)).map((l) => ({ ...l, uid: uidSeq++ }));
 }
 

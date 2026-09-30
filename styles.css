@@ -198,6 +198,8 @@ button,input,select{font:inherit;color:inherit}
 .toggle input:focus-visible + .toggle-ui{outline:3px solid var(--focus);outline-offset:2px}
 .toggle-text{display:flex;flex-direction:column}
 .toggle-text small{color:var(--steel);font-size:14px}
+.dis-row{display:flex;flex-direction:column;gap:6px;margin:0 0 8px 58px;max-width:320px;font-size:14px;font-weight:600;color:var(--steel)}
+@media (max-width:560px){ .dis-row{margin-left:0} }
 
 /* ---------- Adeguamenti ---------- */
 .adjust{margin-top:12px;border-top:1px solid var(--rule);padding-top:6px}

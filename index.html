@@ -13,7 +13,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Trasporti">
   <link rel="preload" href="fonts/barlow-condensed-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="styles.css?v=10">
+  <link rel="stylesheet" href="styles.css?v=11">
 </head>
 <body>
   <header class="topbar">
@@ -122,8 +122,12 @@
           <label class="toggle">
             <input type="checkbox" id="optDis">
             <span class="toggle-ui" aria-hidden="true"></span>
-            <span class="toggle-text"><strong>Località disagiata o oltre 30 km dal capoluogo</strong><small>Il costo va confermato</small></span>
+            <span class="toggle-text"><strong>Località disagiata o oltre 30 km dal capoluogo</strong><small>Inserisci il supplemento, se lo conosci</small></span>
           </label>
+          <div class="dis-row" id="disRow" hidden>
+            <label for="disEur">Supplemento località disagiata / oltre 30 km (€)</label>
+            <input id="disEur" class="input" type="number" min="0" step="1" inputmode="decimal" placeholder="0">
+          </div>
         </div>
 
         <details class="adjust" id="adjustBox">
@@ -208,6 +212,6 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="app.js?v=10"></script>
+  <script src="app.js?v=11"></script>
 </body>
 </html>
