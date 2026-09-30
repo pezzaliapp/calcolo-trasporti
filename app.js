@@ -3,7 +3,7 @@
 "use strict";
 
 /* ====================== Impostazioni ====================== */
-const APP_BUILD = 11;                // deve coincidere con versione.json
+const APP_BUILD = 12;                // deve coincidere con versione.json
 const DATI_VERSIONE = 2;            // deve coincidere con "versione" in data/pallet.json e data/groupage.json
 const ISOLE = ["SICILIA", "SARDEGNA"];
 const STORE = { state: "ct_state", adj: "ct_adj", fuel: "ct_fuel" };
@@ -690,7 +690,9 @@ function paintFuel(){
   const box = $("fuelInfo");
   if(!D.gasolio){ box.textContent = "Dati gasolio non disponibili senza connessione."; return; }
   const d = fuelDelta(), g = D.gasolio;
-  box.textContent = `Oggi ${it1(g.attuale.prezzo, 3)} €/l (MIMIT, ${dataIt(g.attuale.data)}), ${g.base.descrizione} ${it1(g.base.prezzo, 3)} €/l: ${d >= 0 ? "+" : "−"}${it1(Math.abs(d))}%.`;
+  const oggi = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  const vecchio = g.attuale.data < oggi;
+  box.textContent = `${vecchio ? "Ultimo prezzo" : "Oggi"} ${it1(g.attuale.prezzo, 3)} €/l (MIMIT, ${dataIt(g.attuale.data)}), ${g.base.descrizione} ${it1(g.base.prezzo, 3)} €/l: ${d >= 0 ? "+" : "−"}${it1(Math.abs(d))}%.${vecchio ? " Il dato di oggi arriva in automatico appena il MIMIT lo pubblica." : ""}`;
 }
 function setupAdjust(){
   ADJ = num(ls(STORE.adj), 0);

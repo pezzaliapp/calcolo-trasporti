@@ -1,6 +1,6 @@
 /* Service worker: online legge SEMPRE i file più recenti da GitHub (saltando ogni cache),
    offline usa l'ultima copia salvata. */
-const CACHE = "calcolo-trasporti-v11";
+const CACHE = "calcolo-trasporti-v12";
 const ASSETS = [
   "./", "./index.html", "./styles.css", "./app.js", "./manifest.webmanifest", "./versione.json",
   "./data/listini.json", "./data/pallet.json", "./data/groupage.json",

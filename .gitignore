@@ -6,3 +6,4 @@ listini/
 .DS_Store
 # strumenti di conversione dei listini: solo sul computer
 tools/
+__pycache__/
