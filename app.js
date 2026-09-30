@@ -3,6 +3,7 @@
 "use strict";
 
 /* ====================== Impostazioni ====================== */
+const APP_BUILD = 10;                // deve coincidere con versione.json
 const DATI_VERSIONE = 2;            // deve coincidere con "versione" in data/pallet.json e data/groupage.json
 const ISOLE = ["SICILIA", "SARDEGNA"];
 const STORE = { state: "ct_state", adj: "ct_adj", fuel: "ct_fuel" };
@@ -40,7 +41,8 @@ function ls(key, val){
 }
 
 async function getJSON(path){
-  const r = await fetch(path, { cache: "no-store" });
+  // il parametro evita copie vecchie nella cache di GitHub Pages o del browser
+  const r = await fetch(`${path}?v=${Date.now()}`, { cache: "no-store" });
   if(!r.ok) throw new Error(`${path}: ${r.status}`);
   return r.json();
 }
@@ -809,16 +811,42 @@ function toast(msg){
 }
 
 /* ====================== Aggiornamenti automatici ====================== */
+/* Aggiornamento automatico: appena sul server c'è una versione nuova (programma o tariffe)
+   l'app si ricarica da sola. Il carico e le scelte restano, perché sono salvati sul dispositivo. */
+async function forceUpdate(reason){
+  const K = "ct_upd", now = Date.now();
+  let t = [];
+  try{ t = JSON.parse(sessionStorage.getItem(K) || "[]").filter((x) => now - x < 120000); }catch{}
+  if(t.length >= 2){                         // evita ricariche continue: dopo 2 tentativi chiede all'utente
+    $("updBar").classList.add("show");
+    return;
+  }
+  t.push(now);
+  try{ sessionStorage.setItem(K, JSON.stringify(t)); sessionStorage.setItem("ct_updated", reason || "1"); }catch{}
+  try{
+    const regs = await navigator.serviceWorker?.getRegistrations?.() || [];
+    await Promise.all(regs.map((r) => r.unregister()));
+    if(window.caches){ const keys = await caches.keys(); await Promise.all(keys.map((k) => caches.delete(k))); }
+  }catch{}
+  location.replace(`./?v=${now}`);
+}
+
+async function remoteBuild(){
+  try{
+    const r = await fetch(`versione.json?v=${Date.now()}`, { cache: "no-store" });
+    return r.ok ? num((await r.json()).app, 0) : 0;
+  }catch{ return 0; }
+}
+
 function setupUpdates(){
   const WATCH = ["index.html", "app.js", "styles.css", "data/listini.json", "data/pallet.json", "data/groupage.json", "data/articoli.json", "data/geo.json"];
-  const bar = $("updBar");
-  let baseline = null, updating = false;
+  let baseline = null;
 
   async function fingerprint(){
     const parts = [];
     for(const f of WATCH){
       try{
-        const r = await fetch(`${f}?_=${Date.now()}`, { cache: "no-store" });
+        const r = await fetch(`${f}?v=${Date.now()}`, { cache: "no-store" });
         parts.push(`${f}:${r.ok ? await r.text() : "x"}`);
       }catch{ return null; }
     }
@@ -830,25 +858,23 @@ function setupUpdates(){
     let h = 0; for(let i = 0; i < txt.length; i++) h = (h * 31 + txt.charCodeAt(i)) | 0; return String(h);
   }
   async function check(){
-    if(updating || !navigator.onLine) return;
+    if(!navigator.onLine) return;
+    if(await remoteBuild() > APP_BUILD){ forceUpdate("programma"); return; }
     const fp = await fingerprint();
     if(!fp) return;
     if(baseline === null){ baseline = fp; return; }
-    if(fp !== baseline) bar.classList.add("show");
+    if(fp !== baseline) forceUpdate("tariffe");
   }
-  async function apply(){
-    updating = true;
-    bar.querySelector("span").textContent = "Aggiornamento in corso…";
-    try{
-      const reg = await navigator.serviceWorker?.getRegistration();
-      if(reg){ await reg.update().catch(() => {}); reg.waiting?.postMessage({ type: "SKIP_WAITING" }); }
-      if(window.caches){ const keys = await caches.keys(); await Promise.all(keys.map((k) => caches.delete(k))); }
-    }catch{}
-    location.reload();
-  }
-  $("updNow").addEventListener("click", apply);
-  $("updLater").addEventListener("click", () => bar.classList.remove("show"));
-  navigator.serviceWorker?.addEventListener("message", (ev) => { if(ev.data?.type === "SW_UPDATED" && !updating) check(); });
+
+  $("updNow").addEventListener("click", () => { try{ sessionStorage.removeItem("ct_upd"); }catch{} forceUpdate("manuale"); });
+  $("updLater").addEventListener("click", () => $("updBar").classList.remove("show"));
+  navigator.serviceWorker?.addEventListener("message", (ev) => { if(ev.data?.type === "SW_UPDATED") check(); });
+
+  // appena aggiornata: pulisco l'indirizzo e lo segnalo
+  try{
+    if(sessionStorage.getItem("ct_updated")){ sessionStorage.removeItem("ct_updated"); toast("App aggiornata all'ultima versione"); }
+  }catch{}
+  if(/[?&]v=/.test(location.search)) history.replaceState(null, "", location.pathname);
 
   check();
   document.addEventListener("visibilitychange", async () => {
@@ -858,12 +884,12 @@ function setupUpdates(){
   });
   window.addEventListener("pageshow", (e) => { if(e.persisted) check(); });
   window.addEventListener("online", check);
-  setInterval(check, 10 * 60 * 1000);
+  setInterval(check, 5 * 60 * 1000);
 }
 
 /* ====================== Avvio ====================== */
 async function init(){
-  window.addEventListener("load", () => setTimeout(() => sessionStorage.removeItem("ct_reload"), 5000));
+  if(navigator.onLine && await remoteBuild() > APP_BUILD){ forceUpdate("programma"); return; }
   $("dkDate").textContent = dataIt(new Date().toISOString().slice(0, 10));
   try{
     const [listini, pallet, groupage, articoli, geo] = await Promise.all(
@@ -872,15 +898,9 @@ async function init(){
     if(pallet.versione !== DATI_VERSIONE || groupage.versione !== DATI_VERSIONE) throw new Error("versione");
   }catch(e){
     if(e.message === "versione"){
-      // programma e tariffe di versioni diverse (aggiornamento in corso): non mostro prezzi e ricarico
-      $("dkLines").innerHTML = `<p class="dk-empty">È in corso un aggiornamento delle tariffe. Ricarico l'app…</p>`;
-      try{
-        const reg = await navigator.serviceWorker?.getRegistration();
-        await reg?.update();
-        if(window.caches){ const k = await caches.keys(); await Promise.all(k.map((x) => caches.delete(x))); }
-      }catch{}
-      if(!sessionStorage.getItem("ct_reload")){ sessionStorage.setItem("ct_reload", "1"); setTimeout(() => location.reload(), 1500); }
-      else $("dkLines").innerHTML = `<p class="dk-empty">È in corso un aggiornamento delle tariffe. Riprova tra qualche minuto.</p>`;
+      // programma e tariffe di versioni diverse: non mostro prezzi e aggiorno
+      $("dkLines").innerHTML = `<p class="dk-empty">È in corso un aggiornamento delle tariffe. Riprova tra qualche minuto.</p>`;
+      forceUpdate("versione");
       return;
     }
     $("dkLines").innerHTML = `<p class="dk-empty">Impossibile caricare i listini. Controlla la connessione e riapri l'app.</p>`;
@@ -907,6 +927,6 @@ async function init(){
 }
 
 if("serviceWorker" in navigator){
-  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).catch(() => {}));
 }
 init();
