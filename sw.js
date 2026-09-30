@@ -1,5 +1,5 @@
 /* Service worker: l'app funziona anche offline; online legge sempre i file più recenti. */
-const CACHE = "calcolo-trasporti-v7";
+const CACHE = "calcolo-trasporti-v9";
 const ASSETS = [
   "./", "./index.html", "./styles.css", "./app.js", "./manifest.webmanifest",
   "./data/listini.json", "./data/pallet.json", "./data/groupage.json",

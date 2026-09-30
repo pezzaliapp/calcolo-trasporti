@@ -3,6 +3,7 @@
 "use strict";
 
 /* ====================== Impostazioni ====================== */
+const DATI_VERSIONE = 2;            // deve coincidere con "versione" in data/pallet.json e data/groupage.json
 const ISOLE = ["SICILIA", "SARDEGNA"];
 const STORE = { state: "ct_state", adj: "ct_adj", fuel: "ct_fuel" };
 const FUEL_DEFAULTS = { on: false, share: 30, shareIs: 15 };
@@ -385,7 +386,7 @@ function destLabel(){
 
 function refLines(used){
   const L = D.listini, out = [];
-  const who = () => "";
+  const who = (s) => s.fornitore ? ` · ${s.fornitore}` : "";
   if(used.has("pallet")){ const s = L.servizi.pallet; out.push(`<span>Pallet: <b>listino ${esc(s.riferimento.toLowerCase())}</b>${esc(who(s))}</span>`); }
   if(used.has("groupage")){ const s = L.servizi.groupage; out.push(`<span>Groupage: <b>listino ${esc(s.riferimento.toLowerCase())}</b>${esc(who(s))}</span>`); }
   if(used.has("gasolio")) out.push(`<span>Gasolio: <b>MIMIT ${esc(dataIt(D.gasolio.attuale.data))}</b></span>`);
@@ -740,7 +741,7 @@ function buildListini(){
   const L = D.listini, p = L.servizi.pallet, g = L.servizi.groupage;
   const baseTypes = D.pallet.tipi.filter((t) => !t.extraPct);
   const g0 = D.gasolio;
-  const fornitore = (s) => `<p class="hint">${esc(s.listino)}</p>`;
+  const fornitore = (s) => `<p class="hint">${s.fornitore ? `Trasportatore: <b>${esc(s.fornitore)}</b> · ` : ""}${esc(s.listino)}</p>`;
   $("dlgBody").innerHTML = `
     <section class="sup">
       <h3>${esc(p.titolo)}</h3>
@@ -862,12 +863,26 @@ function setupUpdates(){
 
 /* ====================== Avvio ====================== */
 async function init(){
+  window.addEventListener("load", () => setTimeout(() => sessionStorage.removeItem("ct_reload"), 5000));
   $("dkDate").textContent = dataIt(new Date().toISOString().slice(0, 10));
   try{
     const [listini, pallet, groupage, articoli, geo] = await Promise.all(
       ["listini", "pallet", "groupage", "articoli", "geo"].map((n) => getJSON(`data/${n}.json`)));
     Object.assign(D, { listini, pallet, groupage, articoli, geo });
+    if(pallet.versione !== DATI_VERSIONE || groupage.versione !== DATI_VERSIONE) throw new Error("versione");
   }catch(e){
+    if(e.message === "versione"){
+      // programma e tariffe di versioni diverse (aggiornamento in corso): non mostro prezzi e ricarico
+      $("dkLines").innerHTML = `<p class="dk-empty">È in corso un aggiornamento delle tariffe. Ricarico l'app…</p>`;
+      try{
+        const reg = await navigator.serviceWorker?.getRegistration();
+        await reg?.update();
+        if(window.caches){ const k = await caches.keys(); await Promise.all(k.map((x) => caches.delete(x))); }
+      }catch{}
+      if(!sessionStorage.getItem("ct_reload")){ sessionStorage.setItem("ct_reload", "1"); setTimeout(() => location.reload(), 1500); }
+      else $("dkLines").innerHTML = `<p class="dk-empty">È in corso un aggiornamento delle tariffe. Riprova tra qualche minuto.</p>`;
+      return;
+    }
     $("dkLines").innerHTML = `<p class="dk-empty">Impossibile caricare i listini. Controlla la connessione e riapri l'app.</p>`;
     return;
   }
