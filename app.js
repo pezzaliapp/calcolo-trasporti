@@ -3,7 +3,7 @@
 "use strict";
 
 /* ====================== Impostazioni ====================== */
-const APP_BUILD = 12;                // deve coincidere con versione.json
+const APP_BUILD = 13;                // deve coincidere con versione.json
 const DATI_VERSIONE = 2;            // deve coincidere con "versione" in data/pallet.json e data/groupage.json
 const ISOLE = ["SICILIA", "SARDEGNA"];
 const STORE = { state: "ct_state", adj: "ct_adj", fuel: "ct_fuel" };

@@ -291,7 +291,7 @@ button,input,select{font:inherit;color:inherit}
   box-shadow:0 30px 80px -30px rgba(0,0,0,.6);
 }
 .sheet::backdrop{background:rgba(15,20,26,.55)}
-.sheet-head{position:sticky;top:0;background:var(--surface);display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid var(--rule)}
+.sheet-head{position:sticky;top:0;z-index:3;background:var(--surface);box-shadow:0 1px 0 var(--rule);display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid var(--rule)}
 .sheet-head h2{font-family:var(--font-cond);font-size:28px}
 .sheet-body{padding:6px 22px 24px}
 .sup{padding:18px 0;border-bottom:1px solid var(--rule)}
