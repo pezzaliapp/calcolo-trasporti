@@ -3,7 +3,7 @@
 "use strict";
 
 /* ====================== Impostazioni ====================== */
-const APP_BUILD = 13;                // deve coincidere con versione.json
+const APP_BUILD = 14;                // deve coincidere con versione.json
 const DATI_VERSIONE = 2;            // deve coincidere con "versione" in data/pallet.json e data/groupage.json
 const ISOLE = ["SICILIA", "SARDEGNA"];
 const STORE = { state: "ct_state", adj: "ct_adj", fuel: "ct_fuel" };
@@ -198,6 +198,8 @@ function groupageLoad(items){
   return { ml: round2(ml), q: round2(q), b: Math.round(b) };
 }
 
+/* Fonte del prezzo salvato: "MIMIT", "MASE settimanale" o "Bollettino UE" (senza fonte: MIMIT). */
+const fonteGasolio = () => D.gasolio?.attuale?.fonte || "MIMIT";
 function fuelDelta(){
   const g = D.gasolio;
   if(!g?.base?.prezzo || !g?.attuale?.prezzo) return null;
@@ -346,7 +348,7 @@ function computeMode(mode = "auto"){
   const fp = fuelPctFor(reg);
   if(fp){
     const v = round2(total * fp / 100);
-    R.lines.push({ t: `Adeguamento gasolio ${fp > 0 ? "+" : "−"}${it1(Math.abs(fp))}%`, s: `Prezzo MIMIT del ${dataIt(D.gasolio.attuale.data)}`, v, minor: true, adj: true });
+    R.lines.push({ t: `Adeguamento gasolio ${fp > 0 ? "+" : "−"}${it1(Math.abs(fp))}%`, s: `Prezzo ${fonteGasolio()} del ${dataIt(D.gasolio.attuale.data)}`, v, minor: true, adj: true });
     total = round2(total + v);
     R.used.add("gasolio");
   }
@@ -403,7 +405,7 @@ function refLines(used){
   const who = (s) => s.fornitore ? ` · ${s.fornitore}` : "";
   if(used.has("pallet")){ const s = L.servizi.pallet; out.push(`<span>Pallet: <b>listino ${esc(s.riferimento.toLowerCase())}</b>${esc(who(s))}</span>`); }
   if(used.has("groupage")){ const s = L.servizi.groupage; out.push(`<span>Groupage: <b>listino ${esc(s.riferimento.toLowerCase())}</b>${esc(who(s))}</span>`); }
-  if(used.has("gasolio")) out.push(`<span>Gasolio: <b>MIMIT ${esc(dataIt(D.gasolio.attuale.data))}</b></span>`);
+  if(used.has("gasolio")) out.push(`<span>Gasolio: <b>${esc(fonteGasolio())} ${esc(dataIt(D.gasolio.attuale.data))}</b></span>`);
   return out;
 }
 
@@ -692,7 +694,7 @@ function paintFuel(){
   const d = fuelDelta(), g = D.gasolio;
   const oggi = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
   const vecchio = g.attuale.data < oggi;
-  box.textContent = `${vecchio ? "Ultimo prezzo" : "Oggi"} ${it1(g.attuale.prezzo, 3)} €/l (MIMIT, ${dataIt(g.attuale.data)}), ${g.base.descrizione} ${it1(g.base.prezzo, 3)} €/l: ${d >= 0 ? "+" : "−"}${it1(Math.abs(d))}%.${vecchio ? " Il dato di oggi arriva in automatico appena il MIMIT lo pubblica." : ""}`;
+  box.textContent = `${vecchio ? "Ultimo prezzo" : "Oggi"} ${it1(g.attuale.prezzo, 3)} €/l (${fonteGasolio()} del ${dataIt(g.attuale.data)}), ${g.base.descrizione} ${it1(g.base.prezzo, 3)} €/l: ${d >= 0 ? "+" : "−"}${it1(Math.abs(d))}%.${vecchio ? " Il dato nuovo arriva in automatico appena è pubblicato." : ""}`;
 }
 function setupAdjust(){
   ADJ = num(ls(STORE.adj), 0);
@@ -789,7 +791,7 @@ function buildListini(){
     <section class="sup">
       <h3>Prezzo del gasolio</h3>
       <p class="hint">${esc(L.gasolio.fonte)}. ${esc(L.gasolio.nota)}.</p>
-      <div class="sup-when">${g0 ? stamp("Ultimo dato", dataIt(g0.attuale.data)) + stamp("Prezzo", `${it1(g0.attuale.prezzo, 3)} €/l`) : ""}</div>
+      <div class="sup-when">${g0 ? stamp("Ultimo dato", `${fonteGasolio()} del ${dataIt(g0.attuale.data)}`) + stamp("Prezzo", `${it1(g0.attuale.prezzo, 3)} €/l`) : ""}</div>
     </section>
     <p class="hint">Dati dell'app aggiornati al ${esc(dataIt(L.aggiornato, true))}.</p>`;
 }
