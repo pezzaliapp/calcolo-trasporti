@@ -3,7 +3,7 @@
 "use strict";
 
 /* ====================== Impostazioni ====================== */
-const APP_BUILD = 14;                // deve coincidere con versione.json
+const APP_BUILD = 15;                // deve coincidere con versione.json
 const DATI_VERSIONE = 2;            // deve coincidere con "versione" in data/pallet.json e data/groupage.json
 const ISOLE = ["SICILIA", "SARDEGNA"];
 const STORE = { state: "ct_state", adj: "ct_adj", fuel: "ct_fuel" };
@@ -211,6 +211,18 @@ function fuelPctFor(reg){
   return d * (ISOLE.includes(reg) ? FUEL.shareIs : FUEL.share) / 100;
 }
 
+/* Maggiorazione predefinita sulle tariffe dei trasportatori, decisa in data/listini.json → "maggiorazioneFornitori":
+   un solo valore per pallet e groupage, sulla sola tariffa (prima di assicurazione, adeguamento e gasolio).
+   pct 0, assente o non valido = nessuna maggiorazione. Vale da subito: "dal" è la data scritta nella riga. */
+function maggiorazioneFornitori(){
+  const m = D.listini?.maggiorazioneFornitori;
+  const pct = Number(m?.pct);
+  return { pct: Number.isFinite(pct) ? pct : 0, dal: m?.dal || "" };
+}
+function rigaMagg(M, svc, v){
+  return { t: `Adeguamento tariffe trasportatori ${M.pct > 0 ? "+" : "−"}${itN(Math.abs(M.pct))}%`, s: M.dal ? `dal ${dataIt(M.dal)}` : "", v: round2(v), minor: true, forn: svc };
+}
+
 /* mode: "auto" (per ogni prodotto il servizio più conveniente), "pallet" (dove possibile), "groupage" (tutto in groupage) */
 function decideService(line, mode, reg, prov){
   const base = lineService(line);
@@ -239,6 +251,7 @@ function computeMode(mode = "auto"){
   if(!cart.length) return R;
 
   const opts = S.opts;
+  const MAGG = maggiorazioneFornitori();
   let costTot = 0;
   let priced = false;
 
@@ -270,6 +283,11 @@ function computeMode(mode = "auto"){
       if(list.some((pl) => !pl.fixed && pl.pct)) R.ovs = true;
     }
     if(missing.length) R.notes.push(`Tariffa pallet non trovata per: ${missing.join(", ")}.`);
+    if(nPal && MAGG.pct){
+      const m = sub * MAGG.pct / 100;
+      sub += m;
+      R.lines.push(rigaMagg(MAGG, "pallet", m));
+    }
     if(nPal){
       const sped = Math.ceil(nPal / reg0.maxPalletPerSpedizione);
       if(sped > 1) R.infos.push(`${nPal} pallet: il trasportatore accetta al massimo ${reg0.maxPalletPerSpedizione} pallet per spedizione, calcolate ${sped} spedizioni.`);
@@ -309,6 +327,11 @@ function computeMode(mode = "auto"){
           s: `Carico ${carico}. Fascia fino a ${itN(band.ml)} m, ${band.b} bancali, ${band.q} q`,
           v: round2(c)
         });
+        if(MAGG.pct){
+          const m = c * MAGG.pct / 100;
+          c += m;
+          R.lines.push(rigaMagg(MAGG, "groupage", m));
+        }
         if(band.over) R.notes.push("Il carico supera l'ultima fascia del listino groupage: la cifra è una stima minima, va richiesta una quotazione.");
         if(opts.ass){
           const a = c * D.groupage.regole.assicurazionePct / 100;
@@ -336,6 +359,9 @@ function computeMode(mode = "auto"){
   if(opts.dis && priced && !(num(opts.disEur) > 0)) R.notes.push("Località disagiata o oltre 30 km dal capoluogo: possibile supplemento, il costo va confermato.");
 
   if(!priced) return R;
+  /* Pallet e groupage insieme: due righe di maggiorazione, si dice a quale servizio va ognuna */
+  const forn = R.lines.filter((l) => l.forn);
+  if(forn.length > 1) forn.forEach((l) => { l.s = `${l.forn === "pallet" ? "Pallet" : "Groupage"}${l.s ? ", " + l.s : ""}`; });
 
   /* --- Adeguamenti --- */
   const base = round2(R.lines.reduce((s, l) => s + l.v, 0));
